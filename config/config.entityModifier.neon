@@ -1,0 +1,7 @@
+services:
+    entityModifier:
+        class: Wame\EntityModifier\Model\EntityModifier
+        tags: [run, kdyby.subscriber]
+
+extensions:
+	entityModifier: Wame\EntityModifier\DI\Extension
