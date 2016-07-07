@@ -61,7 +61,7 @@ class EntityModifier extends Object implements Subscriber
     public function buildTempEntity($entityName)
     {
         $builder = $this->getEntityBuilder($entityName);
-        if ($builder->isBuilt()) {
+        if ($builder->isBuilt() || class_exists($this->getModifiedClassName($entityName))) {
             return;
         }
 
