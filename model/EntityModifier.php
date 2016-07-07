@@ -11,6 +11,7 @@ use Nette\Caching\IStorage;
 use Nette\Object;
 use Wame\Core\Event\RepositoryEntitySetEvent;
 use Wame\EntityModifier\Model\EntityBuilder;
+use Wame\Utils\Strings;
 
 class EntityModifier extends Object implements Subscriber
 {
@@ -48,11 +49,7 @@ class EntityModifier extends Object implements Subscriber
      */
     public function onEntitynNameSet(RepositoryEntitySetEvent $event)
     {
-        $entityName = $event->getEntityName();
-        if ($this->isModified($entityName)) {
-            $this->buildTempEntity($entityName);
-            $event->setEntityName($this->getModifiedClassName($entityName));
-        }
+        $event->setEntityName($this->modifyName($event->getEntityName()));
     }
 
     /**
@@ -79,7 +76,7 @@ class EntityModifier extends Object implements Subscriber
         $metadata->fieldNames = [];
         $metadata->columnNames = [];
         $metadata->identifier = [];
-        $metadata->table = [];
+        $metadata->table = null;
         $metadata->isMappedSuperclass = true;
 
         $tempMetadata = $this->metaFactory->getMetadataFor($tempEntityName);
@@ -95,21 +92,25 @@ class EntityModifier extends Object implements Subscriber
     {
         $metadata = $event->getClassMetadata();
         foreach ($metadata->associationMappings as $key => $mapping) {
-            if ($this->isModified($mapping['targetEntity'])) {
-                $metadata->associationMappings[$key]['targetEntity'] = $this->getModifiedClassName($mapping['targetEntity']);
-                $this->buildTempEntity($mapping['targetEntity']);
-            }
-            if ($this->isModified($mapping['sourceEntity'])) {
-                $metadata->associationMappings[$key]['sourceEntity'] = $this->getModifiedClassName($mapping['sourceEntity']);
-                $this->buildTempEntity($mapping['sourceEntity']);
-            }
+            $metadata->associationMappings[$key]['targetEntity'] = $this->modifyName($mapping['targetEntity']);
+            $metadata->associationMappings[$key]['sourceEntity'] = $this->modifyName($mapping['sourceEntity']);
         }
         foreach ($metadata->discriminatorMap as $key => $entity) {
-            if ($this->isModified($entity)) {
-                $metadata->discriminatorMap[$key] = $this->getModifiedClassName($entity);
-                $this->buildTempEntity($entity);
+            $metadata->discriminatorMap[$key] = $this->modifyName($entity);
+        }
+    }
+
+    public function modifyName($name)
+    {
+        if ($this->isModified($name)) {
+            $this->buildTempEntity($name);
+            return $this->getModifiedClassName($name);
+        } else {
+            if (Strings::startsWith($name, self::ENTITIES_NAMESPACE)) {
+                return substr($name, strlen(self::ENTITIES_NAMESPACE));
             }
         }
+        return $name;
     }
 
     /**

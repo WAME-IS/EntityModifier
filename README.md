@@ -15,3 +15,10 @@ $entityModifier->getEntityBuilder(\Wame\ArticleModule\Entities\ArticleEntity::cl
 
 $entityModifier->getEntityBuilder(\Wame\ArticleModule\Entities\ArticleEntity::class)->addTrait("Wame\Core\Entities\Columns\Lang");
 ```
+
+Also config can be used directly for same purpose:
+```
+entityModifier:
+    traits:
+    - {class: Wame\ArticleModule\Entities\ArticleEntity, trait: Wame\Core\Entities\Columns\Parameters}
+```
