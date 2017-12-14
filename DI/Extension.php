@@ -9,9 +9,9 @@ use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Helpers;
 use Wame\EntityModifier\Model\EntityModifier;
 
+
 class Extension extends CompilerExtension
 {
-
     public function __construct()
     {
         if (!file_exists(EntityModifier::ENTITIES_PATH)) {
@@ -19,22 +19,26 @@ class Extension extends CompilerExtension
         }
     }
 
+
     public function setCompiler(Compiler $compiler, $name)
     {
         parent::setCompiler($compiler, $name);
+
         $this->compiler->addConfig(["doctrine" => ["metadata" => [EntityModifier::ENTITIES_NAMESPACE => EntityModifier::ENTITIES_PATH]]]);
+
         return $this;
     }
 
+
     public function loadConfiguration()
     {
-
         $builder = $this->getContainerBuilder();
 
         $builder->addDefinition('entityModifier')
-            ->setClass(EntityModifier::class, array('@cacheStorage', '@doctrine.default.entityManager'))
-            ->addTag('kdyby.subscriber');
+                ->setClass(EntityModifier::class, ['@cacheStorage', '@doctrine.default.entityManager'])
+                ->addTag('kdyby.subscriber');
     }
+
 
     public function addTraits(&$lines, $traits)
     {
@@ -44,11 +48,10 @@ class Extension extends CompilerExtension
             }
 
             // Adds new service definition
-            $lines[] = Helpers::format(
-                    '$service->getEntityBuilder(?)->addTrait(?)', $trait['class'], $trait['trait']
-            );
+            $lines[] = Helpers::format('$service->getEntityBuilder(?)->addTrait(?)', $trait['class'], $trait['trait']);
         }
     }
+
 
     public function afterCompile(ClassType $class)
     {
@@ -66,4 +69,5 @@ class Extension extends CompilerExtension
         $lines[] = 'return $service;';
         $init->setBody(implode(";\n", $lines));
     }
+
 }
